@@ -1,31 +1,30 @@
-#' @title Create table 1, part 3 from the credit union publication
+#' @title Create table 2, part 7 from the credit union publication
 #'
-#' @description Creates Table 1, part 3 from the \href{https://www.bankofengland.co.uk/news?NewsTypes=571948d14c6943f7b5b7748ad80bef29&Direction=Upcoming}{Credit Union Quarterly Release}.
+#' @description Creates table 2, part 7 from the \href{https://www.bankofengland.co.uk/news?NewsTypes=571948d14c6943f7b5b7748ad80bef29&Direction=Upcoming}{Credit Union Quarterly Release}.
 #'
-#' @details \code{table_1} takes as input a standardised long format data frame of class \code{series_period_data},
+#' @details \code{table_7} takes as input a standardised long format data frame of class \code{series_period_data},
 #' uses associated metadata to create table elements and uses \code{dsdtabs} to format a table.
 #'
 #' @keywords internal
 #'
 #' @param x Object of class \code{series_period_data()}.
 #'
-#' @return Table 1, part 3
+#' @return table 2, part 7
 #'
 #' @examples
 #'
-#'
-#' table_1_part_3(CQ)
+#' table_2_part_7(CQ)
 #'
 #'
 #' @export
 
-table_1_part_3<- function(x) {
+table_2_part_7<- function(x) {
 
   x <- x %>%
     dplyr::arrange(desc(Quarter)) %>%
-    dplyr::filter(Data.Element == "CQ_A7") %>%
+    dplyr::filter(Data.Element == "CQ_P5") %>%
     dplyr:: group_by(Data.Element, Country, Quarter) %>%
-    dplyr:: summarise(Position = sum(Position)) %>%
+    dplyr:: summarise(Position = sum(Position)/1000) %>% # convert into thousands (£)
     dplyr:: select(Data.Element, Country, Quarter, Position) %>%
     dplyr::slice(1:5) %>%
     dplyr:: group_by(Data.Element, Quarter)
@@ -33,15 +32,14 @@ table_1_part_3<- function(x) {
 
   UK <- x %>%
     dplyr:: summarise(Country = as.character("UK"),
-              Position = sum(Position)) %>%
+                      Position = sum(Position)) %>%
     bind_rows( .)
 
   x<-  rbind(x, UK)
 
   # create wide representation of the data
   x <- tidyr::spread(x, key=Quarter, value= Position) #%>%
-    #dplyr::mutate_all(funs(prettyNum(., big.mark=",")))
-
+  #dplyr::mutate_all(funs(prettyNum(., big.mark=",")))
   names<-  data.frame(a = c("UK", "England", "Scotland", "Wales","Northern Ireland"))
 
   x<- x[match(names$a, x$Country),]
@@ -56,10 +54,11 @@ table_1_part_3<- function(x) {
       data = x,
       quarters = colnames(x[!colnames(x) == ""]),
       country = x[,2],
-      units = "Number of submisions",
-      title = "Quarterly Returns submitted",
+      units = paste("\ua3", "Thousands"),
+      title = "Total relevant liabilities (d)",
       transformation = "Not seasonally adjusted",
       Box_code = x[,1]
     ),
-    class = "table_1")
+    class = "table_2")
 }
+

@@ -1,31 +1,31 @@
-#' @title Create table 1, part 3 from the credit union publication
+#' @title Create table 2, part 1 from the credit union publication
 #'
-#' @description Creates Table 1, part 3 from the \href{https://www.bankofengland.co.uk/news?NewsTypes=571948d14c6943f7b5b7748ad80bef29&Direction=Upcoming}{Credit Union Quarterly Release}.
+#' @description Creates table 2, part 1 from the \href{https://www.bankofengland.co.uk/news?NewsTypes=571948d14c6943f7b5b7748ad80bef29&Direction=Upcoming}{Credit Union Quarterly Release}.
 #'
-#' @details \code{table_1} takes as input a standardised long format data frame of class \code{series_period_data},
+#' @details \code{table_2} takes as input a standardised long format data frame of class \code{series_period_data},
 #' uses associated metadata to create table elements and uses \code{dsdtabs} to format a table.
 #'
 #' @keywords internal
 #'
 #' @param x Object of class \code{series_period_data()}.
 #'
-#' @return Table 1, part 3
+#' @return table 2, part 1
 #'
 #' @examples
 #'
 #'
-#' table_1_part_3(CQ)
+#' table_2_part_1(CQ)
 #'
 #'
 #' @export
 
-table_1_part_3<- function(x) {
+table_2_part_1<- function(x) {
 
   x <- x %>%
     dplyr::arrange(desc(Quarter)) %>%
-    dplyr::filter(Data.Element == "CQ_A7") %>%
+    dplyr::filter(Data.Element == "CQ_C16") %>%
     dplyr:: group_by(Data.Element, Country, Quarter) %>%
-    dplyr:: summarise(Position = sum(Position)) %>%
+    dplyr:: summarise(Position = sum(Position)/1000) %>% # convert into thousands (£)
     dplyr:: select(Data.Element, Country, Quarter, Position) %>%
     dplyr::slice(1:5) %>%
     dplyr:: group_by(Data.Element, Quarter)
@@ -56,10 +56,10 @@ table_1_part_3<- function(x) {
       data = x,
       quarters = colnames(x[!colnames(x) == ""]),
       country = x[,2],
-      units = "Number of submisions",
-      title = "Quarterly Returns submitted",
+      units = paste("\ua3", "Thousands"),
+      title = "Total assets",
       transformation = "Not seasonally adjusted",
       Box_code = x[,1]
     ),
-    class = "table_1")
+    class = "table_2")
 }

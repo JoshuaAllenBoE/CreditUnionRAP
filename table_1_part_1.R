@@ -13,7 +13,8 @@
 #'
 #' @examples
 #'
-#'
+#' library(CreditUnionRAP)
+#' library(dplyr)
 #' table_1_part_1(CQ)
 #'
 #'
@@ -32,7 +33,7 @@ table_1_part_1<- function(x) {
     dplyr:: group_by(Data.Element, Quarter)
 
   UK <- x %>%
-    summarise(Country = as.character("UK"),
+    dplyr:: summarise(Country = as.character("UK"),
               n = sum(n)) %>%
     bind_rows( .)
 
@@ -44,6 +45,8 @@ table_1_part_1<- function(x) {
   names<-  data.frame(a = c("UK", "England", "Scotland", "Wales","Northern Ireland"))
 
   x<- x[match(names$a, x$Country),]
+  colnames(x)[1] <- ""
+  colnames(x)[2] <- ""
 
 
   # Define the class here ----
@@ -51,11 +54,12 @@ table_1_part_1<- function(x) {
   structure(
     list(
       data = x,
-      quarters = colnames(x),
-      series = as.character(unique(x$Data.Element)),
-      country = as.character(x$Country),
+      quarters = colnames(x[!colnames(x) == ""]),
+      country = x[,2],
       units = "Number of submisions",
-      title = "Quarterly Returns submitted"
+      title = "Quarterly Returns submitted",
+      transformation = "Not seasonally adjusted",
+      Box_code = x[,1]
     ),
     class = "table_1")
 

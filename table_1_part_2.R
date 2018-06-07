@@ -32,18 +32,21 @@ table_1_part_2<- function(x) {
 
 
   UK <- x %>%
-    summarise(Country = as.character("UK"),
+    dplyr:: summarise(Country = as.character("UK"),
               Position = sum(Position)) %>%
     bind_rows( .)
 
     x<-  rbind(x, UK)
 
   # create wide representation of the data
-  x <- tidyr::spread(x, key=Quarter, value= Position)
+  x <- tidyr::spread(x, key=Quarter, value= Position) #%>%
+    #dplyr::mutate_all(funs(prettyNum(., big.mark=",")))
 
   names<-  data.frame(a = c("UK", "England", "Scotland", "Wales","Northern Ireland"))
 
   x<- x[match(names$a, x$Country),]
+  colnames(x)[1] <- ""
+  colnames(x)[2] <- ""
 
 
   # Define the class here ----
@@ -51,11 +54,12 @@ table_1_part_2<- function(x) {
   structure(
     list(
       data = x,
-      quarters = colnames(x),
-      series = as.character(unique(x$Data.Element)),
-      country = as.character(x$Country),
-      units = "Number of members",
-      title = "Adult members"
-      ),
+      quarters = colnames(x[!colnames(x) == ""]),
+      country = x[,2],
+      units = "Number of submisions",
+      title = "Quarterly Returns submitted",
+      transformation = "Not seasonally adjusted",
+      Box_code = x[,1]
+    ),
     class = "table_1")
 }

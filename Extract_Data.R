@@ -1,38 +1,107 @@
-#' @title Read a CQ extract from the N drive
+#' @title Extracting historic VO data for stats release series
 #'
-#' @description read a CQ VO export from N drive into a tidy dataframe.
+#' @description Automated exports supporting the credit union statistical release - quarterly
 #'
-#' @keywords internal
+#' @details The best way to understand what happens when you run this function
+#' is to look at the source code.
 #'
-#' @param file Filepath of a VO (.csv) export#
+#' @param path = "N:/DATA/RDG/Credit Union Data/Publication/Credit Union RAP/CreditUnionRAP/Data/CQ_VO.xlsx"
 #'
-#' @param periods the periods used in publication of interest
+#' @param sheet = sheet = "VO"
 #'
+#' @param periods = c("2016 Q4", "2017 Q1", "2017 Q2", "2017 Q3", "2017 Q4")
+
 #' @return a tibble
 #'
 #' @examples
 #'
+#' library(CreditUnionRAP)
 #' library(dplyr)
-#' library(utils)
+#' library(tibble)
+#' library(readxl)
 #'
-#' read_CQ_vo(file = "//MFSD/Data/DATA/RDG/Credit Union Data/Publication/Credit Union RAP/Credit Union RAP/CQ.VO.csv", periods = c("2016 Q4", "2017 Q1", "2017 Q2", "2017 Q3", "2017 Q4")) # if the file isn't open
-#'
+#' read_CQ_vo()
 #'
 #' @export
+#'
 
-read_CQ_vo <- function(file = "N:/DATA/RDG/Credit Union Data/Publication/Credit Union RAP/CreditUnionRAP/Data/CQ.VO.csv", periods = c("2016 Q4", "2017 Q1", "2017 Q2", "2017 Q3", "2017 Q4")) {
+read_CQ_vo <- function(path = "N:/DATA/RDG/Credit Union Data/Publication/Credit Union RAP/CreditUnionRAP/CQ_VO.xlsx",
+                       sheet = "VO",
+                       periods =  c("2017 Q1", "2017 Q2", "2017 Q3", "2017 Q4", "2018 Q1"))
+{
 
-  data <- read.csv(file = file, header = TRUE)
+  data <- readxl:: read_xlsx(path = path, col_names =  TRUE, sheet = sheet)
+  colnames(data)[1] <- "FRN"
+  colnames(data)[2] <- "Data.Element"
+  colnames(data)[3] <- "Country"
+  colnames(data)[4] <- "Quarter"
+  colnames(data)[5] <- "Year.End"
+  colnames(data)[6] <- "Position"
+
+
   data <- data %>%
     dplyr:: filter(!FRN == 0 & !Data.Element ==0 & !Position == 0) %>%
     dplyr:: filter(Quarter %in% periods) %>%
     dplyr:: filter(!FRN == 999999) %>%
+    #dplyr:: distinct(FRN, Data.Element, Quarter, Position, keep_all = FALSE)%>%
     tibble:: as.tibble()
 
 
   return(data)
 
 }
+
+#' @title Extracting missing data for stats release series, entered manually into workbook
+#'
+#' @description Automated exports supporting the credit union statistical release - quarterly
+#'
+#' @details The best way to understand what happens when you run this function
+#' is to look at the source code.
+#'
+#' @param path = "N:/DATA/RDG/Credit Union Data/Publication/Credit Union RAP/CreditUnionRAP/Data/CQ_VO.xlsx"
+#'
+#' @param sheet = sheet = "VO_Missing"
+#'
+#' @param periods = c("2016 Q4", "2017 Q1", "2017 Q2", "2017 Q3", "2017 Q4")
+
+#' @return a tibble
+#'
+#' @examples
+#'
+#' library(CreditUnionRAP)
+#' library(dplyr)
+#' library(readxl)
+#' library(tibble)
+#'
+#' read_CQ_missing()
+#'
+#' @export
+#'
+
+read_CQ_missing <- function(path = "N:/DATA/RDG/Credit Union Data/Publication/Credit Union RAP/CreditUnionRAP/CQ_VO.xlsx",
+                            sheet = "VO_Missing",
+                            periods =  c("2017 Q1", "2017 Q2", "2017 Q3", "2017 Q4", "2018 Q1"))
+{
+
+  data <- readxl:: read_xlsx(path = path, col_names =  TRUE, sheet = sheet)
+  colnames(data)[1] <- "FRN"
+  colnames(data)[2] <- "Data.Element"
+  colnames(data)[3] <- "Country"
+  colnames(data)[4] <- "Quarter"
+  colnames(data)[5] <- "Year.End"
+  colnames(data)[6] <- "Position"
+
+
+  data <- data %>%
+    dplyr:: filter(!FRN == 0 & !Data.Element ==0 & !Position == 0) %>%
+    dplyr:: filter(Quarter %in% periods) %>%
+    tibble:: as.tibble()
+
+
+  return(data)
+
+}
+
 
 #' @title Transport and select columns for origanl extract
 #'
@@ -46,18 +115,20 @@ read_CQ_vo <- function(file = "N:/DATA/RDG/Credit Union Data/Publication/Credit 
 #'
 #' @examples
 #'
-#' library(dplyr)]
+#' library(dplyr)
 #' library(tidyr)
-#' flatten_and_select(file = "//MFSD/Data/DATA/RDG/Credit Union Data/Publication/Credit Union RAP/Credit Union RAP/CQData.csv")
+#' library(utils)
+#' flatten_and_select(file = "CQData.csv")
 #'
 #'
 #'
 #' @export
 #'
 
-flatten_and_select <- function(file){
+flatten_and_select <- function(file, file.name = "CQExtract_2018Q1"){
 #Import the data
-CQData <- read.csv(file = file, stringsAsFactors=FALSE)
+setwd("N:/DATA/RDG/Credit Union Data/Publication/Credit Union RAP/CreditUnionRAP")
+CQData <- utils:: read.csv(file = file, stringsAsFactors=FALSE)
 
 #Select columns
 CQData <- CQData[,c("Firm.Code..FRN.","Firm.Name","Reporting.Date","CQ_A2","CQ_A7",
@@ -66,8 +137,8 @@ CQData <- CQData[,c("Firm.Code..FRN.","Firm.Name","Reporting.Date","CQ_A2","CQ_A
                     "CQ_H5","CQ_H6","CQ_H7","CQ_H8","CQ_H9","CQ_H10","CQ_J13","CQ_K18",
                     "CQ_P1","CQ_P5")]
 
-CQDataFlat <- gather(CQData, key = Data.Element, value = Position, CQ_A2:CQ_P5)
-write.csv(CQDataFlat,"CQDataFlat.csv")
+CQDataFlat <- tidyr:: gather(CQData, key = Data.Element, value = Position, CQ_A2:CQ_P5)
+utils:: write.csv(CQDataFlat,"N:/DATA/RDG/Credit Union Data/Publication/Credit Union RAP/CreditUnionRAP/CQExtract_2018Q1.csv")
 }
 
 
